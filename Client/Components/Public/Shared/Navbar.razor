@@ -1,5 +1,36 @@
 ﻿<h3>Navbar</h3>
 
 @code {
+    [Inject] public NavigationManager NavManager { get; set; }
 
+    private const string HomePageUri = "/";
+    private const string BlogPageUri = "/blog";
+
+    private bool IsPageActive(string pageToCheckUri)
+    {
+        // Skip 3 to remove https://domainname/
+        string[] currentUriSplitBetweenSlashes = NavManager.Uri.Split('/').Skip(3).ToArray();
+
+        if (pageToCheckUri == HomePageUri)
+        {
+            if (currentUriSplitBetweenSlashes.Last().Length == 0)
+                return true;
+        }
+        else
+        {
+            string [] pageToCheckUriSplitBetweenSlashes = NavManager.Uri.Split('/').Skip(1).ToArray();
+
+            foreach (string currentUriPart in currentUriSplitBetweenSlashes)
+            {
+                foreach (string pageToCheckUriPart in pageToCheckUriSplitBetweenSlashes)
+                {
+                    if (pageToCheckUriPart == currentUriPart)
+                        return true;
+                }
+            }
+        }
+
+        // If the code gets here, pageToCheckUri is not an active page, so return false
+        return false;
+    }
 }
