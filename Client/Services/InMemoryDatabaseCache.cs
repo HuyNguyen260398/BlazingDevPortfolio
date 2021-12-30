@@ -1,4 +1,6 @@
-﻿using Shared.Models;
+﻿using Client.Static;
+using Shared.Models;
+using System.Net.Http.Json;
 
 namespace Client.Services;
 
@@ -11,15 +13,28 @@ internal sealed class InMemoryDatabaseCache
         _httpClient = httpClient;
     }
 
-    private List<Category> categories = null;
+    private List<Category> _categories = null;
 
     internal List<Category> Categories
     {
-        get { return categories; }
+        get { return _categories; }
         set 
         { 
-            categories = value;
+            _categories = value;
             NotifyCategoriesDataChanged();
+        }
+    }
+
+    private bool _gettingCategoriesFromDatabaseAndCaching = false;
+
+    internal async Task GetCategoriesFromDatabaseAndCache()
+    {
+        // Only allow one Get request to run at a time
+        if (!_gettingCategoriesFromDatabaseAndCaching)
+        {
+            _gettingCategoriesFromDatabaseAndCaching = true;
+            _categories = await _httpClient.GetFromJsonAsync<List<Category>>(ApiEndpoints.s_categories);
+            _gettingCategoriesFromDatabaseAndCaching = false;
         }
     }
 
