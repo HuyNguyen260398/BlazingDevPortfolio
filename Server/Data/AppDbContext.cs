@@ -19,14 +19,14 @@ public class AppDbContext : DbContext
 
         Category[] categoriesToSeed = new Category[3];
 
-        for (int i = 0; i < categoriesToSeed.Length; i++)
+        for (int i = 1; i < 4; i++)
         {
             categoriesToSeed[i - 1] = new Category
             {
                 CategoryId = i,
                 ThumbnailImagePath = "uploads/placeholder.jpg",
                 Name = $"Category {i}",
-                Description = $"A description of category {1}"
+                Description = $"A description of category {i}"
             };
         }
 
