@@ -15,7 +15,7 @@
                     foreach (var item in InMemDb.Categories)
                     {
                         <div class="col-md-4">
-                            <CategoryCard />
+                            <CategoryCard Category=item />
                         </div>
                     }
                 }
@@ -28,7 +28,8 @@
 
 @code 
 {
-    [Inject] InMemoryDatabaseCache InMemDb { get; set; }
+    [Inject] 
+    InMemoryDatabaseCache InMemDb { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
