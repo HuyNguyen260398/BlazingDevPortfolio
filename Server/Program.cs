@@ -4,6 +4,14 @@ using Server.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddCors(options => {
+    options.AddPolicy(
+        "CorsPolicy",
+        buidler => buidler.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader());                  
+});
+
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -26,6 +34,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+app.UseCors("CorsPolicy");
 
 app.UseAuthorization();
 

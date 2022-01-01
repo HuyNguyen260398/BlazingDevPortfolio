@@ -1,5 +1,7 @@
 ﻿@page "/blog"
 
+@implements IDisposable
+
 <Navbar />
 
 <main class="container min-vh-90 py-5">
@@ -8,18 +10,39 @@
             <h1 class="my-3">Blog</h1>
             <p>Click a category card to view its post</p>
             <div class="row">
-                <div class="col-md-4">
-                    <CategoryCard />
-                </div>
-                <div class="col-md-4">
-                    <CategoryCard />
-                </div>
-                <div class="col-md-4">
-                    <CategoryCard />
-                </div>
+                @if (InMemDb.Categories != null)
+                {
+                    foreach (var item in InMemDb.Categories)
+                    {
+                        <div class="col-md-4">
+                            <CategoryCard />
+                        </div>
+                    }
+                }
             </div>
         </div>
     </div>
 </main>
 
 <Footer />
+
+@code 
+{
+    [Inject] InMemoryDatabaseCache InMemDb { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        InMemDb.OnCategoriesDataChanged += StateHasChanged;
+
+        if (InMemDb.Categories == null)
+        {
+            await InMemDb.GetCategoriesFromDatabaseAndCache();
+        }
+    }
+
+    // Unsubscribe from event Dispose(), else we'll create memory leak
+    public void Dispose()
+    {
+        InMemDb.OnCategoriesDataChanged -= StateHasChanged;
+    }
+}
