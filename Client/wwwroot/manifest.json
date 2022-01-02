@@ -1,6 +1,6 @@
 {
-  "name": "Client",
-  "short_name": "Client",
+  "name": "Blazing Def Portfolio",
+  "short_name": "Blazing Def Portfolio",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
