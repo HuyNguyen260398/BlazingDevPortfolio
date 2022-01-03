@@ -1,10 +1,10 @@
 ﻿<!-- Modal -->
-<div class="modal fade" id="informationModal">
+<div class="modal fade @_modalClass" id="informationModal" tabindex="-1" ariel-labelledby="informationModalLabel" role="dialog" style="display:@_modalDisplay">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="informationModal">Example Portfolio Project</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="informationModalLabel">Example Portfolio Project</h5>
+                <button @onclick="CloseModal" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div id="carouselWithIndicators" class="carousel carousel-dark slide" data-bs-ride="carousel">
@@ -14,7 +14,7 @@
                         <button type="button" data-bs-target="#carouselWithIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
                     </div>
                     <div class="carousel-inner">
-                        <div class="carousel-item-active">
+                        <div class="carousel-item active">
                             <a href="assets/img/publicbackgrounds/bg-motherboard-dev.jpg" target="_blank">
                                 <img src="assets/img/publicbackgrounds/bg-motherboard-dev.jpg" class="d-block w-100" />
                             </a>
@@ -30,11 +30,11 @@
                             </a>
                         </div>
                     </div>
-                    <button type="button" class="carousel-control-prev" data-bs-slied="prev" data-bs-target="#carouselWithIndicators">
+                    <button type="button" class="carousel-control-prev" data-bs-slide="prev" data-bs-target="#carouselWithIndicators">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Previous</span>
                     </button>
-                    <button type="button" class="carousel-control-prev" data-bs-slied="next" data-bs-target="#carouselWithIndicators">
+                    <button type="button" class="carousel-control-next" data-bs-slide="next" data-bs-target="#carouselWithIndicators">
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Next</span>
                     </button>
@@ -43,10 +43,10 @@
                     Click an image to view
                 </p>
                 <a href="https://dotnet.microsoft.com/apps/aspnet" class="btn btn-primary btn-lg d-block my-5 shadow" target="_blank">
-                    <i class="fas fa-laptop-code"></i>Live Demo
+                    <i class="fas fa-laptop-code"></i> Live Demo
                 </a>
                 <a href="https://dotnet.microsoft.com/apps/aspnet" class="btn btn-primary btn-lg d-block my-5 shadow" target="_blank">
-                    <i class="fab fa-github-square"></i>Github Repo
+                    <i class="fab fa-github-square"></i> Github Repo
                 </a>
                 <h1 class="mt-5">Description</h1>
                 <p>
@@ -63,10 +63,45 @@
                 </ul>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary btn-lg shadow" data-bs-dismiss="modal">
+                <button @onclick="CloseModal" type="button" class="btn btn-primary btn-lg shadow" data-bs-dismiss="modal">
                     Close
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+@if (_showBackDrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code
+{
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private string _modalDisplay = null;
+    private string _modalClass = null;
+    private bool _showBackDrop = false;
+
+    protected override void OnInitialized()
+    {
+        ShowModal();
+    }
+
+    private void ShowModal()
+    {
+        _modalDisplay = "block";
+        _modalClass = "show";
+        _showBackDrop = true;
+    }
+
+    private void CloseModal()
+    {
+        _modalDisplay = "none";
+        _modalClass = string.Empty;
+        _showBackDrop = false;
+        OnClose.InvokeAsync();
+    }
+}
