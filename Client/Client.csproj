@@ -8,11 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Components\Admin\Sidebar.razor.css" />
     <None Remove="Pages\Admin\Sidebar.razor.css" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Pages\Admin\Sidebar.razor.css" />
+    <Content Include="Components\Admin\Sidebar.razor.css" />
   </ItemGroup>
 
   <ItemGroup>
