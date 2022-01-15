@@ -1,0 +1,35 @@
+﻿@page "/admin/categories"
+
+@implements IDisposable
+@inject InMemoryDatabaseCache InMemDb
+
+<main class="admin-area-main">
+
+    <Sidebar />
+
+    <div class="admin-area-content container-fluid bg-white">
+        <div class="row g-0">
+            <div class="col">
+                <h1>Categories</h1>
+                <br />
+                <br />
+                <br />
+            </div>
+        </div>
+    </div>
+</main>
+
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        InMemDb.OnCategoriesDataChanged += StateHasChanged;
+
+        if (InMemDb.Categories == null)
+        {
+            await InMemDb.GetCategoriesFromDatabaseAndCache();
+        }
+    }
+
+    public void Dispose() => InMemDb.OnCategoriesDataChanged -= StateHasChanged;
+}

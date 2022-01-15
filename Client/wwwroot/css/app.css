@@ -108,11 +108,11 @@ body {
     border-color: #cfb300;
 }
 
-    .btn-update:hover {
-        color: #FFF;
-        background-color: #a68f00;
-        border-color: #a68f00;
-    }
+.btn-update:hover {
+    color: #FFF;
+    background-color: #a68f00;
+    border-color: #a68f00;
+}
 
 .admin-index-thumbnail-image {
     display: block;
