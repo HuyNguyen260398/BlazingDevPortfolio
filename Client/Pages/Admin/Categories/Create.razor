@@ -1,0 +1,27 @@
+﻿@inject HttpClient HttpClient
+@inject InMemoryDatabaseCache InMemDb
+
+@code
+{
+    private Category _categoryToCreate = new() { ThumbnailImagePath = "uploads/placeholder.jpg", Posts = new() };
+    private bool _attemptingToCreate = false;
+    private bool _attemptingToFailed = false;
+    private bool _createSuccessful = false;
+
+    private async Task CreateCategory()
+    {
+        _attemptingToCreate = true;
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync<Category>(ApiEndpoints.s_categories, _categoryToCreate);
+        if (response.StatusCode == HttpStatusCode.Created)
+        {
+            Category addedCategory = await response.Content.ReadFromJsonAsync<Category>();
+            InMemDb.Categories.Add(addedCategory);
+            _createSuccessful = true;
+        }
+        else
+        {
+            _attemptingToCreate = false;
+        }
+        _attemptingToCreate = false;
+    }
+}
