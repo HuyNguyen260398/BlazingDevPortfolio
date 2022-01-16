@@ -25,7 +25,20 @@
                         </div>
                         <div class="form-group mb-5">
                             <label for="thumbnailImage">Thumbnail Image</label>
-                            <img src="@($"{ApiEndpoints.ServerBaseUrl}/{_categoryToCreate.ThumbnailImagePath}")" class="admin-crud-form-thumbnail-image" />
+
+                            @if (_attemptUpload)
+                            {
+                                <LoadingDot />
+                            }
+                            else if (_attemptUploadFailed)
+                            {
+                                <h4 class="text-danger">Failed to upload image: @_reasonUploadFailed</h4>
+                            }
+                            else
+                            {
+                                <img src="@($"{ApiEndpoints.ServerBaseUrl}/{_categoryToCreate.ThumbnailImagePath}")" class="admin-crud-form-thumbnail-image" />
+                            }
+
                             <br />
                             <InputFile OnChange="HandleUploadImage" class="form-control mt-4" id="thumbnailImage" />
                         </div>
