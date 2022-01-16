@@ -19,12 +19,12 @@ public class ImageUploadController : ControllerBase
     {
         try
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             
             if (uploadedImage.OldImagePath != string.Empty)
             {
-                if (uploadedImage.OldImagePath != "uploads/placeholder/jpg")
+                if (uploadedImage.OldImagePath != "uploads/placeholder.jpg")
                 {
                     string oldImageName = uploadedImage.OldImagePath.Split('/').Last();
                     System.IO.File.Delete($"{_webHostEnvironment.ContentRootPath}\\wwwroot\\uploads\\{oldImageName}");

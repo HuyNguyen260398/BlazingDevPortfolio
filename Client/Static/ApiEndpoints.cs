@@ -8,4 +8,5 @@ internal static class ApiEndpoints
     internal const string ServerBaseUrl = "";
 #endif
     internal readonly static string s_categories = $"{ServerBaseUrl}/api/categories";
+    internal readonly static string s_imgUpload = $"{ServerBaseUrl}/api/imageupload";
 }
