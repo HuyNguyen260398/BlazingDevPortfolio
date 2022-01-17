@@ -2,6 +2,7 @@
 
 @implements IDisposable
 @inject InMemoryDatabaseCache InMemDb
+@inject HttpClient HttpClient
 
 <main class="admin-area-main">
 
@@ -85,6 +86,11 @@
 
 @code
 {
+    private bool _attemptDeleteCategory = false;
+    private bool _successDeleteCategory = false;
+    private bool _unsuccessDeleteCategory = false;
+    private string _reasonUnsuccessDeleteCategory = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         InMemDb.OnCategoriesDataChanged += StateHasChanged;
@@ -96,4 +102,38 @@
     }
 
     public void Dispose() => InMemDb.OnCategoriesDataChanged -= StateHasChanged;
+
+    private async void DeleteCategory(Category categoryToDelete)
+    {
+        if (categoryToDelete.Posts != null && categoryToDelete.Posts.Count > 0)
+        {
+            _reasonUnsuccessDeleteCategory = "Relevant posts in category must be deleted first!";
+            _unsuccessDeleteCategory = true;
+        }
+        else
+        {
+            _attemptDeleteCategory = true;
+            HttpResponseMessage response = await HttpClient.DeleteAsync($"{ApiEndpoints.s_categories}/{categoryToDelete.CategoryId}");
+
+            if (response.StatusCode == HttpStatusCode.NoContent)
+            {
+                if (InMemDb.Categories.Remove(categoryToDelete))
+                {
+                    _successDeleteCategory = true;
+                }
+                else
+                {
+                    _reasonUnsuccessDeleteCategory = "Error with InMemDb!";
+                    _unsuccessDeleteCategory = true;
+                }
+            }
+            else
+            {
+                _reasonUnsuccessDeleteCategory = $"Error with api endpoint: {response.StatusCode}.";
+                _unsuccessDeleteCategory = true;
+            }
+        }
+        _attemptDeleteCategory = false;
+        StateHasChanged();
+    }
 }
