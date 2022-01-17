@@ -16,7 +16,7 @@
                 <br />
                 <br />
 
-                @if (InMemDb.Categories == null)
+                @if (InMemDb.Categories == null || _attemptDeleteCategory)
                 {
                     <LoadingDot />
                 }
@@ -67,7 +67,7 @@
                                                         <i class="fas fa-edit"></i> Update
                                                     </a>
                                                     <br />
-                                                    <button class="btn btn-danger shadow md-f-size-1-5">
+                                                    <button @onclick="(() => DeleteCategory(category))" class="btn btn-danger shadow md-f-size-1-5">
                                                         <i class="fas fa-trash"></i> Delete
                                                     </button>
                                                 </div>
@@ -79,6 +79,27 @@
                         </div>
                     }
                 }
+
+                <div class="position-fixed bottom-0 end-5 z-index-5">
+                    
+                    @if (_successDeleteCategory)
+                    {
+                        <Toast IsError="false" 
+                               ToastTitle="Delete success!"
+                               ToastBody="The category has been removed!"
+                               ParentMethodToCallOnClose="() => _successDeleteCategory = false" />
+                    }
+
+                    @if (_unsuccessDeleteCategory)
+                    {
+                        <Toast IsError="true" 
+                               ToastTitle="Delete failed!"
+                               ToastBody="@_reasonUnsuccessDeleteCategory"
+                               ParentMethodToCallOnClose="() => _unsuccessDeleteCategory = false" />
+                    }
+
+                </div>
+
             </div>
         </div>
     </div>
