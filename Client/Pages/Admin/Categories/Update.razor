@@ -1,0 +1,159 @@
+﻿@page "/admin/categories/update/{CategoryId:int}"
+
+@inject HttpClient HttpClient
+@inject InMemoryDatabaseCache InMemDb
+
+<main class="admin-area-main">
+    <Sidebar />
+
+    <div class="admin-area-content container-fluid bg-white">
+        <div class="row g-0">
+            <div class="col">
+                <h1 class="mb-4">Update Category</h1>
+
+                @if (_categoryToUpdate == null || _attempUpdate)
+                {
+                    <LoadingDot />
+                }
+                else if (!_updateSuccessful && !_attempUpdate)
+                {
+                    <EditForm Model="_categoryToUpdate" OnValidSubmit="UpdateCategory">
+                        <DataAnnotationsValidator />
+                        <div class="form-group mb-5">
+                            <label for="categoryName">Category Name</label>
+                            <InputText @bind-Value="_categoryToUpdate.Name" class="form-control" id="categoryName" />
+                        </div>
+                        <div class="form-group mb-5">
+                            <label for="thumbnailImage">Thumbnail Image</label>
+
+                            @if (_attemptUpload)
+                            {
+                                <LoadingDot />
+                            }
+                            else if (_attemptUploadFailed)
+                            {
+                                <h4 class="text-danger">Failed to upload image: @_reasonUploadFailed</h4>
+                            }
+                            else
+                            {
+                                <img src="@($"{ApiEndpoints.ServerBaseUrl}/{_categoryToUpdate.ThumbnailImagePath}")" class="admin-crud-form-thumbnail-image" />
+                            }
+
+                            <br />
+                            <InputFile OnChange="HandleUploadImage" class="form-control mt-4" id="thumbnailImage" />
+                        </div>
+                        <div class="form-group mb-5">
+                            <label for="categoryDescription">Category Description</label>
+                            <InputText @bind-Value="_categoryToUpdate.Description" class="form-control" id="categoryDescription" />
+                        </div>
+                        <ValidationSummary />
+                        <button class="btn btn-success shadow d-block mt-5 md-f-size-1-5" type="submit">
+                            <i class="far fa-save"></i> Save
+                        </button>
+                        <a href="/admin/categories" class="btn btn-primary shadow mt-5 md-f-size-1-5">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                    </EditForm>
+                }
+                <div class="position-fixed bottom-0 end-5 z-index-5">
+
+                    @if (_attemptUpdateFailed)
+                    {
+                        <Toast IsError="true" 
+                               ToastTitle="Update failed" 
+                               ToastBody="Please try again"
+                               ParentMethodToCallOnClose="() => _attempUpdate = false"/>
+                    }
+                    @if (_updateSuccessful)
+                    {
+                        <Toast IsError="false" 
+                               ToastTitle="Update Success" 
+                               ToastBody="Your change has been saved"
+                               ParentMethodToCallOnClose="() => _attempUpdate = false"/>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@code
+{
+    [Parameter]
+    public int CategoryId { get; set; }
+
+    private Category _categoryToUpdate = null;
+    private bool _attempUpdate = false;
+    private bool _attemptUpdateFailed = false;
+    private bool _updateSuccessful = false;
+    private bool _attemptUpload = false;
+    private bool _attemptUploadFailed = false;
+    private string _reasonUploadFailed = string.Empty;
+
+    protected async override Task OnParametersSetAsync()
+    {
+        _categoryToUpdate = await InMemDb.GetCategoryById(CategoryId);
+    }
+
+    private async Task UpdateCategory()
+    {
+        _attempUpdate = true;
+        HttpResponseMessage response = await HttpClient.PutAsJsonAsync<Category>($"{ApiEndpoints.s_categories}/{CategoryId}" , _categoryToUpdate);
+        if (response.StatusCode == HttpStatusCode.NoContent)
+        {
+            Category unupdatedCategoryInList = InMemDb.Categories.Single(c => c.CategoryId == CategoryId);
+            UtilityFunctions.CopyObjectProperties(_categoryToUpdate, unupdatedCategoryInList);
+            _updateSuccessful = true;
+        }
+        else
+        {
+            _attempUpdate = false;
+        }
+        _attempUpdate = false;
+    }
+
+    private async Task HandleUploadImage(InputFileChangeEventArgs e)
+    {
+        _attemptUpload = true;
+
+        if (e.File.ContentType != "image/jpeg" && e.File.ContentType != "image/png")
+        {
+            _reasonUploadFailed = "Invalid image type.";
+            _attemptUploadFailed = true;
+        }
+        else if (e.File.Size >= 31000000) // ~30 megabytes
+        {
+            _reasonUploadFailed = "Image must not larger than 30MB.";
+            _attemptUploadFailed = true;
+        }
+        else
+        {
+            IBrowserFile uploadedFile = e.File;
+            byte[] fileAsByte = new byte[uploadedFile.Size];
+
+            // Fills the content of the image byte array
+            await uploadedFile.OpenReadStream(31000000).ReadAsync(fileAsByte);
+            string byteString = Convert.ToBase64String(fileAsByte);
+
+            UploadedImage uploadImage = new UploadedImage()
+            {
+                NewImageExtension = uploadedFile.Name.Substring(uploadedFile.Name.Length - 4),
+                NewImageBase64Content = byteString,
+                OldImagePath = string.Empty
+            };
+
+            HttpResponseMessage response = await HttpClient.PostAsJsonAsync<UploadedImage>(ApiEndpoints.s_imgUpload, uploadImage);
+
+            if (response.StatusCode == HttpStatusCode.Created)
+                _categoryToUpdate.ThumbnailImagePath = await response.Content.ReadAsStringAsync();
+            else
+            {
+                _reasonUploadFailed = $"Error: {response.StatusCode} - {response.ReasonPhrase}";
+                _attemptUploadFailed = true;
+            }
+        }
+        _attemptUpload = false;
+        StateHasChanged();
+    }
+}

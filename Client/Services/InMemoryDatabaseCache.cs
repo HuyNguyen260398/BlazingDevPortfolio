@@ -27,6 +27,14 @@ internal sealed class InMemoryDatabaseCache
 
     private bool _gettingCategoriesFromDatabaseAndCaching = false;
 
+    internal async Task<Category> GetCategoryById(int categoryId)
+    {
+        if (_categories == null)
+            await GetCategoriesFromDatabaseAndCache();
+
+        return _categories.FirstOrDefault(c => c.CategoryId == categoryId);
+    }
+
     internal async Task GetCategoriesFromDatabaseAndCache()
     {
         // Only allow one Get request to run at a time
