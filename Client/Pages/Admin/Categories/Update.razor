@@ -93,7 +93,7 @@
 
     protected async override Task OnParametersSetAsync()
     {
-        _categoryToUpdate = await InMemDb.GetCategoryById(CategoryId);
+        _categoryToUpdate = await InMemDb.GetCategoryById(CategoryId, false);
     }
 
     private async Task UpdateCategory()

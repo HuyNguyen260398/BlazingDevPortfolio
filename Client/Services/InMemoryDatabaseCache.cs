@@ -151,6 +151,11 @@ internal sealed class InMemoryDatabaseCache
                 _posts = null;
 
             List<Post> postsFromDb = await _httpClient.GetFromJsonAsync<List<Post>>(ApiEndpoints.s_posts);
+
+            foreach (var post in postsFromDb)
+                if (post.Category == null)
+                    post.Category = await _httpClient.GetFromJsonAsync<Category>($"{ApiEndpoints.s_categories}/{post.CategoryId}");
+
             _posts = postsFromDb.OrderByDescending(p => p.PostId).ToList();
             _gettingCategoriesFromDatabaseAndCaching = false;
         }

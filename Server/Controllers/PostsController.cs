@@ -30,7 +30,7 @@ public class PostsController : ControllerBase
         return Ok(Posts);
     }
 
-    [HttpGet("{dto/id}")]
+    [HttpGet("dto/{id}")]
     public async Task<IActionResult> GetDto(int id)
     {
         Post post = await GetPostByPostId(id);
