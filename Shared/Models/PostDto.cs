@@ -19,7 +19,6 @@ public class PostDto
     [MaxLength(512)]
     public string Excerpt { get; set; }
 
-    [Required]
     public string Content { get; set; }
 
     [Required]
