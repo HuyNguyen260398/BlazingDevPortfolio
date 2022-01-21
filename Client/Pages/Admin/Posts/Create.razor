@@ -1,0 +1,168 @@
+﻿@page "/admin/posts/create"
+
+@inject HttpClient HttpClient
+@inject InMemoryDatabaseCache InMemDb
+
+<main class="admin-area-main">
+    <Sidebar />
+
+    <div class="admin-area-content container-fluid bg-white">
+        <div class="row g-0">
+            <div class="col">
+                <h1 class="mb-4">@(_createSuccessful ? "Create Success!" : "Create Post")</h1>
+
+                @if (_attempCreate)
+                {
+                    <h1>Creating post...</h1>
+                }
+                else if (!_createSuccessful && !_attempCreate)
+                {
+                    <EditForm Model="_postToCreate" OnValidSubmit="CreatePost">
+                        <DataAnnotationsValidator />
+
+                        @if (InMemDb.Categories == null)
+                        {
+                            <LoadingDot />
+                        }
+                        else
+                        {
+                            <div class="form-group mb-5">
+                                <label for="postCategory">Category</label>
+                                <InputSelect @bind-Value="@_postToCreate.CategoryId" class="form-control" id="postCategory">
+                                    @foreach (var category in InMemDb.Categories)
+                                    {
+                                        <option value="@category.CategoryId">@category.Name</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        }
+
+                        <div class="form-group mb-5">
+                            <label for="postTitle">Post Title</label>
+                            <InputText @bind-Value="_postToCreate.Title" class="form-control" id="postTitle" />
+                        </div>
+                        <div class="form-group mb-5">
+                            <label for="thumbnailImage">Thumbnail Image</label>
+
+                            @if (_attemptUpload)
+                            {
+                                <LoadingDot />
+                            }
+                            else if (_attemptUploadFailed)
+                            {
+                                <h4 class="text-danger">Failed to upload image: @_reasonUploadFailed</h4>
+                            }
+                            else
+                            {
+                                <img src="@($"{ApiEndpoints.ServerBaseUrl}/{_postToCreate.ThumbnailImagePath}")" class="admin-crud-form-thumbnail-image" />
+                            }
+
+                            <br />
+                            <InputFile OnChange="HandleUploadImage" class="form-control mt-4" id="thumbnailImage" />
+                        </div>
+                        <div class="form-group mb-5">
+                            <label for="postExcerpt">Post Excerpt</label>
+                            <InputText @bind-Value="_postToCreate.Excerpt" class="form-control" id="postExcerpt" />
+                        </div>
+                        <div class="form-group mb-5">
+                            <label for="postContent">Post Content</label>
+                            <InputText @bind-Value="_postToCreate.Content" class="form-control" id="postContent" />
+                        </div>
+                        <div class="form-group mb-5">
+                            <label for="postPublished">Post Published</label>
+                            <InputCheckbox @bind-Value="_postToCreate.IsPublished" class="form-check-input" id="postPublished" aria-describedby="postPublishHelp" />
+                            <div id="postPublishHelp" class="form-text">
+                                The value of this specifies whether this post is visible for the user.
+                                Publishing a post also updates the value of Publish Date.
+                            </div>
+                        </div>
+                        <div class="form-group mb-5">
+                            <label for="postAuthor">Post Author</label>
+                            <InputText @bind-Value="_postToCreate.Author" class="form-control" id="postAuthor" />
+                        </div>
+                        <ValidationSummary />
+                        <button class="btn btn-success shadow d-block mt-5 md-f-size-1-5" type="submit">
+                            <i class="far fa-save"></i> Save
+                        </button>
+                    </EditForm>
+                }
+                <a href="/admin/posts" class="btn btn-primary shadow mt-5 md-f-size-1-5">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+@code
+{
+    private PostDto _postToCreate = new PostDto() { ThumbnailImagePath = "uploads/placeholder.jpg" };
+    private bool _attempCreate = false;
+    private bool _attemptCreateFailed = false;
+    private bool _createSuccessful = false;
+    private bool _attemptUpload = false;
+    private bool _attemptUploadFailed = false;
+    private string _reasonUploadFailed = string.Empty;
+
+    private async Task CreatePost()
+    {
+        _attempCreate = true;
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync<PostDto>(ApiEndpoints.s_posts, _postToCreate);
+        if (response.StatusCode == HttpStatusCode.Created)
+        {
+            Post addedPost = await response.Content.ReadFromJsonAsync<Post>();
+            addedPost.Category = await InMemDb.GetCategoryById(addedPost.CategoryId, false);
+            InMemDb.Posts.Add(addedPost);
+            _createSuccessful = true;
+        }
+        else
+        {
+            _attempCreate = false;
+        }
+        _attempCreate = false;
+    }
+
+    private async Task HandleUploadImage(InputFileChangeEventArgs e)
+    {
+        _attemptUpload = true;
+
+        if (e.File.ContentType != "image/jpeg" && e.File.ContentType != "image/png")
+        {
+            _reasonUploadFailed = "Invalid image type.";
+            _attemptUploadFailed = true;
+        }
+        else if (e.File.Size >= 31000000) // ~30 megabytes
+        {
+            _reasonUploadFailed = "Image must not larger than 30MB.";
+            _attemptUploadFailed = true;
+        }
+        else
+        {
+            IBrowserFile uploadedFile = e.File;
+            byte[] fileAsByte = new byte[uploadedFile.Size];
+
+            // Fills the content of the image byte array
+            await uploadedFile.OpenReadStream(31000000).ReadAsync(fileAsByte);
+            string byteString = Convert.ToBase64String(fileAsByte);
+
+            UploadedImage uploadImage = new UploadedImage()
+            {
+                NewImageExtension = uploadedFile.Name.Substring(uploadedFile.Name.Length - 4),
+                NewImageBase64Content = byteString,
+                OldImagePath = string.Empty
+            };
+
+            HttpResponseMessage response = await HttpClient.PostAsJsonAsync<UploadedImage>(ApiEndpoints.s_imgUpload, uploadImage);
+
+            if (response.StatusCode == HttpStatusCode.Created)
+                _postToCreate.ThumbnailImagePath = await response.Content.ReadAsStringAsync();
+            else
+            {
+                _reasonUploadFailed = $"Error: {response.StatusCode} - {response.ReasonPhrase}";
+                _attemptUploadFailed = true;
+            }
+        }
+        _attemptUpload = false;
+        StateHasChanged();
+    }
+}

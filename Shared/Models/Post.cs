@@ -22,7 +22,6 @@ public class Post
     [Required]
     public string Content { get; set; }
 
-    [Required]
     public string PublishDate { get; set; }
 
     [Required]

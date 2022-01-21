@@ -46,7 +46,7 @@ public class PostsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Post postToCreateDto)
+    public async Task<IActionResult> Create([FromBody] PostDto postToCreateDto)
     {
         try
         {
