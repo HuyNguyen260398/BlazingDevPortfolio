@@ -1,0 +1,102 @@
+﻿@page "/blog"
+
+@inject InMemoryDatabaseCache InMemDb
+@implements IDisposable
+
+<Navbar />
+
+<main class="container min-vh-90 py-5">
+    <div class="row">
+        <div class="col">
+            <h1 class="my-3">Blog</h1>
+            <p>Click a category card to view its post</p>
+            <div class="row">
+                @if (InMemDb.Categories == null)
+                {
+                    <LoadingDot />
+                }
+                else
+                {
+                    if (InMemDb.Categories.Count < 1)
+                    {
+                        <h3>No categories found</h3>
+                    }
+                    else if (InMemDb.Categories.Count < 3)
+                    {
+                        <div class="row">
+                            @foreach (var category in InMemDb.Categories)
+                            {
+                                <div class="col-md-4">
+                                    <CategoryCard Category="category" />
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        if (InMemDb.Categories.Count % 3 == 0)
+                        {
+                            for (int i = 0; i < InMemDb.Categories.Count; i += 3)
+                            {
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <CategoryCard Category="InMemDb.Categories[i]" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <CategoryCard Category="InMemDb.Categories[i+1]" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <CategoryCard Category="InMemDb.Categories[i+2]" />
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else if (InMemDb.Categories.Count % 3 == 2)
+                        {
+                            for (int i = 0; i < InMemDb.Categories.Count - 2; i += 3)
+                            {
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <CategoryCard Category="InMemDb.Categories[i]" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <CategoryCard Category="InMemDb.Categories[i+1]" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <CategoryCard Category="InMemDb.Categories[i+2]" />
+                                    </div>
+                                </div>
+                            }
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <CategoryCard Category="InMemDb.Categories[InMemDb.Categories.Count - 1]" />
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</main>
+
+<Footer />
+
+@code 
+{
+    protected override async Task OnInitializedAsync()
+    {
+        InMemDb.OnCategoriesDataChanged += StateHasChanged;
+
+        if (InMemDb.Categories == null)
+        {
+            await InMemDb.GetCategoriesFromDatabaseAndCache(true);
+        }
+    }
+
+    // Unsubscribe from event Dispose(), else we'll create memory leak
+    public void Dispose()
+    {
+        InMemDb.OnCategoriesDataChanged -= StateHasChanged;
+    }
+}
