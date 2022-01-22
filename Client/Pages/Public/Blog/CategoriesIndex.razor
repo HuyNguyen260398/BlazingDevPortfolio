@@ -1,0 +1,25 @@
+﻿@page "/blog/{CategoryName}"
+
+@inject InMemoryDatabaseCache InMemDb
+
+<h3>CategoriesIndex</h3>
+
+@code {
+    [Parameter]
+    public string CategoryName { get; set; }
+    private Category _category = null;
+    private List<Post> _publishedPosts = null;
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (InMemDb.Categories == null)
+            await InMemDb.GetCategoriesFromDatabaseAndCache(false);
+
+        _category = await InMemDb.GetCategoryByName(CategoryName.ConvertURLToTitle(), true, true);
+
+        if (_category.Posts.Count == 0)
+            _publishedPosts = _category.Posts.Where(p => p.IsPublished == true).ToList();
+        else
+            _publishedPosts = new();
+    }
+}
