@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Shared.Models.CustomValidations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Shared.Models;
 
@@ -13,6 +14,8 @@ public class Category
 
     [Required]
     [MaxLength(128)]
+    [NoPeriods(ErrorMessage = "The category name field contains one or more periods (.).")]
+    [NoThreeOrMoreSpacesInARow(ErrorMessage = "The category name field contains three or more space in a row.")]
     public string Name { get; set; }
 
     [Required]
