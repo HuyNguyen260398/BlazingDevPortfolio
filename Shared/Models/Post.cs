@@ -19,7 +19,6 @@ public class Post
     [MaxLength(512)]
     public string Excerpt { get; set; }
 
-    [Required]
     public string Content { get; set; }
 
     public string PublishDate { get; set; }
