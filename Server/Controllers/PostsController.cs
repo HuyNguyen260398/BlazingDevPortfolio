@@ -83,7 +83,7 @@ public class PostsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] Post updatedPostDto)
+    public async Task<IActionResult> Update(int id, [FromBody] PostDto updatedPostDto)
     {
         try
         {
@@ -109,7 +109,7 @@ public class PostsController : ControllerBase
             if (updatedPost.IsPublished)
             {
                 if (!oldPost.IsPublished)
-                    updatedPostDto.PublishDate = DateTime.Now.ToShortDateString();
+                    updatedPost.PublishDate = DateTime.Now.ToShortDateString();
                 else
                     updatedPost.PublishDate = oldPost.PublishDate;
             }
@@ -118,7 +118,7 @@ public class PostsController : ControllerBase
 
             // Detach oldPost from EF, else it cannot be updated
             _db.Entry(oldPost).State = EntityState.Detached;
-            _db.Posts.Update(updatedPostDto);
+            _db.Posts.Update(updatedPost);
             bool changesPersitsToDb = await PersistChangesToDatabase();
 
             if (!changesPersitsToDb)
