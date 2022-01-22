@@ -51,6 +51,15 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    using (var serviceScope = app.Services.CreateScope())
+    {
+        // Access injected services via serviceScope.ServiceProvider.
+        var roleManager = serviceScope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+
+        SeedAdminRolesAndUsers.Seed(roleManager, userManager).Wait();
+    }
+
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
