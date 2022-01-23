@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Shared.Models;
@@ -7,6 +8,7 @@ namespace Server.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "Admin")]
 public class CategoriesController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -21,6 +23,7 @@ public class CategoriesController : ControllerBase
     #region  CRUD Operations
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> Get()
     {
         var categories = await _db.Categories.ToListAsync();
@@ -29,6 +32,7 @@ public class CategoriesController : ControllerBase
 
     // api/categories/withposts
     [HttpGet("withposts")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetWithPosts()
     {
         List<Category> categories = await _db.Categories
@@ -38,6 +42,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> Get(int id)
     {
         Category category = await GetCategoryByCategoryId(id, false);
@@ -45,6 +50,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet("withposts/{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetWithPost(int id)
     {
         Category category = await GetCategoryByCategoryId(id, true);
