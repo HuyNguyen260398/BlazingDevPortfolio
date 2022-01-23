@@ -77,7 +77,7 @@
 
             await ((AppAuthenticationStateProvider)AuthStateProvider).SignIn();
 
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearerToken", JsonWebToken);
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", JsonWebToken);
 
             _attemptSignInSuccess = true;
 
